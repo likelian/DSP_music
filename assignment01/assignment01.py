@@ -8,7 +8,7 @@ def crossCorr(x, y):
     """
     compute the correlation between two arrays
     """
-    return np.correlate(x, y)
+    return np.correlate(x, y, "full")
 
 
 def loadSoundFile(filename):
@@ -32,12 +32,13 @@ def main(filename_x, filename_y):
     y = loadSoundFile(filename_y)
     z = crossCorr(x, y)
     plt.plot(z)
+    plt.show()
     plt.savefig('results/01-correlation.png')
-    pass
 
 
-filename_x = "../sounds/snare.wav"
-filename_y = "../sounds/drum_loop.wav"
+
+filename_x = "sounds/snare.wav"
+filename_y = "sounds/drum_loop.wav"
 
 main(filename_x, filename_y)
 
@@ -60,7 +61,7 @@ def findSnarePosition(snareFilename, drumloopFilename):
             pos.append(idx)
 
     text_file = "results/02-snareLocation.txt"
-    f = open(text_file, "a")
+    f = open(text_file, "w")
     for i in pos:
         f.write(str(i)+"\n")
     f.close()
