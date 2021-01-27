@@ -32,7 +32,6 @@ def main(filename_x, filename_y):
     y = loadSoundFile(filename_y)
     z = crossCorr(x, y)
     plt.plot(z)
-    plt.show()
     plt.savefig('results/01-correlation.png')
 
 
