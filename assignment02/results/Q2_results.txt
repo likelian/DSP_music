@@ -1,0 +1,8 @@
+mean difference:
+3.3798403096245914e-10
+mean absolute difference:
+1.302650172069688e-07
+standard deviation:
+1.7057528812179176e-07
+running time of SciPy convolve() and myTimeConv():
+[1.23751163e-02 1.75657640e+01]
