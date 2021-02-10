@@ -1,0 +1,4 @@
+In the future for these kinds of problems, implement the correlate function yourself since it is the core of this problem. 
+Also be sure to label the axes and title of the graph including the names of the wav files (-3)  
+For the snare detection, you should not have hardcoded the values of each snare hit. Every value > 150 may have worked for these files but will not always carry over (-1). 
+All your snare locations are off by one because the snare recording does not begin at sample zero. It begins at 1 (Does not account for lag). (-1)
