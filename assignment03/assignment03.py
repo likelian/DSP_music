@@ -12,12 +12,23 @@ def generateSinusoidal(amplitude, sampling_rate_Hz, frequency_Hz, length_secs, p
     The outputs x and t are the generated signal and the corresponding time in seconds
     (NumPy arrays of the same length)
     """
+    #create time steps
+    t = np.arange(sampling_rate_Hz*length_secs)
+    t /= sampling_rate_Hz
+    #create the empty signal array
+    x = np.ndarray(shape=(int(sampling_rate_Hz * length_secs),))
+    #compute the signal
+    x = amplitude * np.sin(t * frequency_Hz + phase_radians)
+
     return t, x
 
-t, x = generateSinusoidal(1.0, 44100, 400, 0.5, np.pi/2) #generate a sine wave
+t_sin, x_sin = generateSinusoidal(1.0, 44100, 400, 0.5, np.pi/2) #generate a sine wave
 
 #Plot the first 5 ms of the sinusoid
-#label the axes correctly, time axis must be in seconds
+plt.xlabel('time (seconds)')
+plt.ylabel('amplitude')
+plt.plot(t_sin, x_sin)
+plt.savefig('results/sinusoid.png')
 
 
 
@@ -32,7 +43,7 @@ def generateSquare(amplitude, sampling_rate_Hz, frequency_Hz, length_secs, phase
     #generateSinusoidal()
     return t, x
 
-t, x = generateSquare(1.0, 44100, 400, 0.5, 0)
+#t, x = generateSquare(1.0, 44100, 400, 0.5, 0)
 #Plot the first 5 ms of the generated square waves in Part 2.2.
 
 
