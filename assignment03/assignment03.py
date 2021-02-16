@@ -16,9 +16,9 @@ def generateSinusoidal(amplitude, sampling_rate_Hz, frequency_Hz, length_secs, p
     t = np.arange(sampling_rate_Hz*length_secs)
     t /= sampling_rate_Hz
     #create the empty signal array
-    x = np.ndarray(shape=(int(sampling_rate_Hz * length_secs),))
+    x = np.zeros(int(sampling_rate_Hz * length_secs))
     #compute the signal
-    x = amplitude * np.sin(t * frequency_Hz + phase_radians)
+    x = amplitude * np.sin(2 * np.pi * frequency_Hz * t + phase_radians)
 
     return t, x
 
@@ -27,8 +27,9 @@ t_sin, x_sin = generateSinusoidal(1.0, 44100, 400, 0.5, np.pi/2) #generate a sin
 #Plot the first 5 ms of the sinusoid
 plt.xlabel('time (seconds)')
 plt.ylabel('amplitude')
-plt.plot(t_sin, x_sin)
+plt.plot(t_sin[:int(0.005*44100)], x_sin[:int(0.005*44100)])
 plt.savefig('results/sinusoid.png')
+plt.clf()
 
 
 
@@ -36,16 +37,26 @@ plt.savefig('results/sinusoid.png')
 def generateSquare(amplitude, sampling_rate_Hz, frequency_Hz, length_secs, phase_radians):
     """
     generates a square wave approximated with 10 sinusoidal
-    (https://en.wikipedia.org/wiki/Square_wave)
     The outputs x and t are the generated signal and the corresponding time in seconds.
     (NumPy arrays of the same length)
     """
-    #generateSinusoidal()
-    return t, x
+    x = np.zeros(int(sampling_rate_Hz * length_secs)) #create the empty signal array
 
-#t, x = generateSquare(1.0, 44100, 400, 0.5, 0)
+    n = 1
+    while n <= 10:
+        t_n, x_n = generateSinusoidal(amplitude/(2*n - 1), sampling_rate_Hz, frequency_Hz*(2*n - 1), length_secs, phase_radians)
+        x += x_n #add each sinusoidal
+        n += 1
+    return t_n, x
+
+t_square, x_square = generateSquare(1.0, 44100, 400, 0.5, 0)
+
 #Plot the first 5 ms of the generated square waves in Part 2.2.
-
+plt.xlabel('time (seconds)')
+plt.ylabel('amplitude')
+plt.plot(t_square[:int(0.005*44100)], x_square[:int(0.005*44100)])
+plt.savefig('results/square.png')
+plt.clf()
 
 
 ##################Question 3. Fourier Transform [25]############################
