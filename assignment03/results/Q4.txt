@@ -1,0 +1,4 @@
+Q: In a text file in results directory, compare the differences in the two plots due to the different windows used.
+
+A: The hanning window does a better job than the rectangular window with less noise.
+The contrast is more obvious on hanning window due to the lower side-lobe roll-off.

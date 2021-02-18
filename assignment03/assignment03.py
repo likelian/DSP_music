@@ -4,6 +4,7 @@ from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 ##################Question 1: Generating sinusoids [15]#########################
 
 def generateSinusoidal(amplitude, sampling_rate_Hz, frequency_Hz, length_secs, phase_radians):
@@ -28,7 +29,7 @@ t_sin, x_sin = generateSinusoidal(1.0, 44100, 400, 0.5, np.pi/2) #generate a sin
 plt.xlabel('time (seconds)')
 plt.ylabel('amplitude')
 plt.plot(t_sin[:int(0.005*44100)], x_sin[:int(0.005*44100)])
-plt.savefig('results/sinusoid.png')
+plt.savefig('results/sine_time.png')
 plt.clf()
 
 
@@ -49,23 +50,18 @@ def generateSquare(amplitude, sampling_rate_Hz, frequency_Hz, length_secs, phase
         n += 1
     return t_n, x
 
+
 t_square, x_square = generateSquare(1.0, 44100, 400, 0.5, 0)
 
 #Plot the first 5 ms of the generated square waves in Part 2.2.
 plt.xlabel('time (seconds)')
 plt.ylabel('amplitude')
 plt.plot(t_square[:int(0.005*44100)], x_square[:int(0.005*44100)])
-plt.savefig('results/square.png')
+plt.savefig('results/square_time.png')
 plt.clf()
 
 
 ##################Question 3. Fourier Transform [25]############################
-
-"""
-
-
-"""
-
 
 def computeSpectrum(x, sample_rate_Hz):
     """
@@ -76,27 +72,40 @@ def computeSpectrum(x, sample_rate_Hz):
         the real part XRe
         the imaginary part XIm
         the frequency of the bins f
-
-    Return only the non-redundant part (without symmetry)
     """
-    #You may use the NumPy fft function in order to compute the FFT
-    return f,XAbs,XPhase,XRe,XIm
+    #print(x)
+    #print(len(x))
+    X = np.fft.fft(x)[:int(len(x)/2)] #complex spectrum (half)
+    XRe = abs(X)
+    #XRe = 20 * np.log10(abs(X) / 8192)
+    XIm = np.angle(X)
+    XAbs = np.array([XRe, np.arange(len(XRe))*sample_rate_Hz/len(XRe)/2])
+    XPhase = np.array([XIm, XAbs[1]])
+    f = len(X)*2/sample_rate_Hz
+    return f, XAbs, XPhase, XRe, XIm
 
+f, XAbs_sin, XPhase_sin, XRe_sin, XIm_sin = computeSpectrum(x_sin, 44100) #spectrum in Question1.2
+f, XAbs_square, XPhase_square, XRe_square, XIm_square = computeSpectrum(x_square, 44100) #spectrum in Question2.2
 
-#f,XAbs,XPhase,XRe,XIm = computeSpectrum(x, sample_rate_Hz) #spectrum in Question1.2
-#f,XAbs,XPhase,XRe,XIm = computeSpectrum(x, sample_rate_Hz) #spectrum in Question2.2
+#Plot the magnitude and phase spectra for sine wave
+fig_sin, axs_sin = plt.subplots(2)
+fig_sin.suptitle('Sine')
+axs_sin[0].plot(XAbs_sin[1], XAbs_sin[0])
+axs_sin.flat[0].set(ylabel="magnitude")
+axs_sin[1].plot(XPhase_sin[1], XPhase_sin[0])
+axs_sin.flat[1].set(xlabel="frequency(Hz)", ylabel="phase")
+plt.savefig('results/sin_frequency.png')
+plt.clf()
 
-#Plot the magnitude and phase spectra for each signal (2 sub-plots for magnitude and phase in 1 plot)
-#(label the axes correctly, frequency axis must be in Hz) (There will be two plots. One for each signal.)
-
-"""
-What is the frequency resolution (difference in frequency between the bins) of the FFT obtained above?
-
-How will the frequency resolution change in this case if you zero-pad the input signal
-with the same of zeros as the length of the input signal?
-
-(Answer 3.4 & 3.5 in a text file in results folder)
-"""
+#Plot the magnitude and phase spectra for square wave
+fig_square, axs_square = plt.subplots(2)
+fig_square.suptitle('Square')
+axs_square[0].plot(XAbs_square[1], XAbs_square[0])
+axs_square.flat[0].set(ylabel="magnitude")
+axs_square[1].plot(XPhase_square[1], XPhase_square[0])
+axs_square.flat[1].set(xlabel="frequency(Hz)", ylabel="phase")
+plt.savefig('results/square_frequency.png')
+plt.clf()
 
 
 #######################Question 4. Spectrogram [30]#############################
@@ -111,6 +120,12 @@ def generateBlocks(x, sample_rate_Hz, block_size, hop_size):
 
     (You may need to zero-pad the input signal appropriately for the last block.)
     """
+    x_pad = np.append(x, np.zeros(hop_size - (len(x) - block_size) % hop_size)) #zero_padding
+    t = np.zeros(int((len(x_pad) - block_size)/hop_size + 1)) #create the time stamp array
+    X = np.zeros((len(t), block_size)) #create X matrix
+    for i in range(len(X)):
+        X[i] = x_pad[i * hop_size : i * hop_size + block_size]
+        t[i] = i * hop_size
     return t, X
 
 def mySpecgram(x,  block_size, hop_size, sampling_rate_Hz, window_type):
@@ -131,29 +146,46 @@ def mySpecgram(x,  block_size, hop_size, sampling_rate_Hz, window_type):
     Note: You may use the NumPy fft, hanning and Matplotlib specgram methods.
     You can use the generateBlocks and computeSpectrum methods which you created earlier.
     """
+
+    time_vector, block = generateBlocks(x, sampling_rate_Hz, block_size, hop_size)
+    time_vector /= sampling_rate_Hz
+
+    if window_type == "hann": block = np.multiply(block, np.hanning(block_size))
+
+    magnitude_spectrogram = np.zeros((len(time_vector), int(block_size/2)))
+    for i in range(len(block)-1):
+        f, XAbs, XPhase, XRe, XIm = computeSpectrum(block[i], sampling_rate_Hz)
+        magnitude_spectrogram[i] = XAbs[0]
+    freq_vector = XAbs[1]
     return freq_vector, time_vector, magnitude_spectrogram
 
+
+def plotSpecgram(freq_vector, time_vector, magnitude_spectrogram):
+  if len(freq_vector) < 2 or len(time_vector) < 2:
+    return
+
+  Z = 20. * np.log10(magnitude_spectrogram)
+  Z = np.flipud(Z)
+
+  pad_xextent = (time_vector[1] - time_vector[0]) / 2
+  xmin = np.min(time_vector) - pad_xextent
+  xmax = np.max(time_vector) + pad_xextent
+  extent = xmin, xmax, freq_vector[0], freq_vector[-1]
+  plt.xlabel('time (seconds)')
+  plt.ylabel('frequency (Hz)')
+  im = plt.imshow(Z, None, extent=extent,
+                           origin='upper')
+  plt.axis('auto')
+  plt.show()
+  #plt.savefig('results/spectrogram(rect).png')
+  #plt.savefig('results/spectrogram(hann).png')
+
+
+
 #plot the magnitude spectrogram of the square wave using the rectangular window
-#freq_vector, time_vector, magnitude_spectrogram = mySpecgram()
+freq_vector, time_vector, magnitude_spectrogram = mySpecgram(x_square, 2048, 1024, 44100, "rect")
+plotSpecgram(freq_vector, time_vector, magnitude_spectrogram.transpose())
 
 #plot the magnitude spectrogram of the square wave using the hann window
-#freq_vector, time_vector, magnitude_spectrogram = mySpecgram()
-
-#Take the block_size as 2048 and the hop_size as 1024. In a text file in results directory,
-#compare the differences in the two plots due to the different windows used.
-
-
-
-
-
-
-
-
-
-"""
-Question 5. BONUS: Sine-Sweep (10 points, capped at 100 points)
-
-How would you approach generating a sine sweep in the spectral domain using only a single spectrum (not a spectrogram).
-Write a script that generates a sine-sweep in the frequency domain using one single spectrum.
-You may not use the SciPy chirp function.
-"""
+freq_vector, time_vector, magnitude_spectrogram = mySpecgram(x_square, 2048, 1024, 44100, "hann")
+plotSpecgram(freq_vector, time_vector, magnitude_spectrogram.transpose())

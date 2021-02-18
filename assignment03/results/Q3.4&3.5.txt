@@ -1,0 +1,9 @@
+
+Q: What is the frequency resolution (difference in frequency between the bins) of the FFT obtained above?
+
+A: The frequency resolution is 1Hz.
+
+Q: How will the frequency resolution change in this case if you zero-pad the input signal
+with the same of zeros as the length of the input signal?
+
+A: The frequency resolution will be 0.5Hz.
